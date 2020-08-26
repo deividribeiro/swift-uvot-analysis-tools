@@ -45,13 +45,13 @@ class PositionExtractor(object):
         try:
             os.remove(self.detect)
         except OSError:
-            print 'File %s does not exist. Cannot delete what does not exist.' %self.detect
+            print ('File %s does not exist. Cannot delete what does not exist.' %self.detect)
             pass
 
     def createRegionFiles(self):
         '''Creates source and background region files, using ``source_ra``, ``source_dec``, ``bkg_ra``, and ``bkg_dec``  attributes. Filenames are generated using the ``filepath`` attribute.
         '''
-        
+
         dirpath,filename = path.split(self.filepath)
 
         # write source region file
@@ -60,16 +60,16 @@ class PositionExtractor(object):
         regfile.write(region)
         regfile.close()
 
-        # write background region file if it doesn't already exist 
+        # write background region file if it doesn't already exist
         #if not path.isfile(self.bkgregfile):
         bkgregion = 'fk5;circle(%s,%s,20")' %(self.bkg_coords.ra.value,self.bkg_coords.dec.value)
         bkgregfile = open(self.bkgregfile,'w')
         bkgregfile.write(bkgregion)
         bkgregfile.close()
         #else:
-        #    print 'Background region file already exists. Not recreating.'
+        #    print ('Background region file already exists. Not recreating.')
 
-  
+
     def run_uvotimsum(self, inputFile, outputFile):
         '''Wrapper for running ``UVOTIMSUM`` for combining multiple extensions in a fits file.
 
@@ -89,12 +89,12 @@ class PositionExtractor(object):
         try:
             data = fits.getdata(self.detect)
         except:
-            print 'File %s does not exist. %s is likely a multiple extension file. Attempting to combine extensions and rerunning.' %(self.detect,self.filepath)
+            print ('File %s does not exist. %s is likely a multiple extension file. Attempting to combine extensions and rerunning.' %(self.detect,self.filepath))
             try:
                 # running uvotimsum to combine multiple extensions
                 # to keep things relatively clean, changing filepath to combined while remembering orignal name
                 comb = '%s.comb' %self.filepath
-                orig = self.filepath 
+                orig = self.filepath
                 self.run_uvotimsum(self.filepath,comb)
                 self.filepath = comb
                 # trying to run uvotdetect again
@@ -103,10 +103,10 @@ class PositionExtractor(object):
 
                 # once we have the data from combined, changing back filepath to original
                 self.filepath = orig
-                print 'Combining and rerunning seems to have worked!'
+                print ('Combining and rerunning seems to have worked!')
 
             except:
-                print 'Attempt to combine extensions failed. Defaulting to NED/SIMBAD position.'
+                print ('Attempt to combine extensions failed. Defaulting to NED/SIMBAD position.')
                 self.createRegionFiles()
 
         if np.size(data) > 0:
@@ -119,21 +119,21 @@ class PositionExtractor(object):
                 self.source_coords = SkyCoord('%s %s' %(data[source_ind]['RA'],data[source_ind]['DEC']),unit=(u.deg, u.deg))
                 self.createRegionFiles()
             else:
-                print 'Nearest source too far away (more than 2 arcsecs)! Defaulting to SIMBAD coords.'
+                print ('Nearest source too far away (more than 2 arcsecs)! Defaulting to SIMBAD coords.')
                 self.createRegionFiles()
 
         else:
             self.createRegionFiles()
-            print 'No sources were detected in %s! Defaulting to SIMBAD coords.' %self.filepath
+            print ('No sources were detected in %s! Defaulting to SIMBAD coords.' %self.filepath)
 
     def run_uvotdetect(self,exp='exp.fits'):
-        '''Wrapper to run ``UVOTDETECT``. The ``filepath`` attribute is used for output filename generation. 
+        '''Wrapper to run ``UVOTDETECT``. The ``filepath`` attribute is used for output filename generation.
 
         args:
             exp (str): name of exposure file, assumed to be in the same directory as the primary image.
         '''
         dirpath,filename = path.split(self.filepath)
-        
+
 
         #this is terrible - streamline it more
         expfile = ''

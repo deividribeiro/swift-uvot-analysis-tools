@@ -19,18 +19,18 @@ class MakeSED(object):
         self.sortedpaths = None
 
     def sortFilelistByFilter(self):
-        
+
         fdict = dict.fromkeys(self.filters,np.array([],dtype=str))
         filelistarr = np.array(self.filelist)
 
         for filtr in fdict.keys():
             indx = np.where([re.search(filtr, path) for path in filelistarr])[0]
-        
+
             if np.size(indx) > 0:
                 fdict[filtr] = np.append(fdict[filtr],filelistarr[indx])
 
-        return fdict 
-        
+        return fdict
+
 
     def combineFits(self,startdate, enddate):
 
@@ -42,7 +42,7 @@ class MakeSED(object):
             extfile = '%s_%s-%s_%s' %(filtr,startdate.mjd,enddate.mjd,sumfile)
             combfile = 'comb_%s' % extfile
             nfiles = 0
-            print 'Working on %s filter' % (filtr)
+            print ('Working on %s filter' % (filtr))
 
             for f in tqdm(paths):
                 measurer = MeasureSource(f)
@@ -61,18 +61,18 @@ class MakeSED(object):
                     elif aspflag:
                         self.runFappend(f,extfile)
                     else:
-                        print 'FUUUUCK THIS FILE: %s' %f
+                        print ('FUUUUCK THIS FILE: %s' %f)
                         continue
 
             if nfiles == 0:
-                print 'Filter %s had no files to combine' %filtr
+                print ('Filter %s had no files to combine' %filtr)
                 continue
             else:
 
                 sp = PositionExtractor() #make a utils file so don't have to use a whole class for a simple function
                 sp.run_uvotimsum(extfile,combfile)
                 filepaths.append(combfile)
-        
+
         return filepaths
 
 

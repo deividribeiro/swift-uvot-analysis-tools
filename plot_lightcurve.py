@@ -44,13 +44,14 @@ class UVOTLightCurve(object):
             cols = cycle('bgrcmk')
             for ax,f in zip(axes,filters):
                 #ax.errorbar(dat['mjd'][dat['filter']==f],dat['Mag'][dat['filter']==f],yerr=dat['MagErr'][dat['filter']==f],fmt='.')
-                ax.errorbar(dat['mjd'][dat['filter']==f],1E14*dat['FluxDensity'][dat['filter']==f],yerr=1E14*dat['FluxDensityErr'][dat['filter']==f],label=f,color=cols.next(),fmt='.')
+                # ax.errorbar(dat['mjd'][dat['filter']==f],1E14*dat['FluxDensity'][dat['filter']==f],yerr=1E14*dat['FluxDensityErr'][dat['filter']==f],label=f,color=cols.next(),fmt='.')
+                ax.errorbar(dat['mjd'][dat['filter']==f],1E14*dat['FluxDensity'][dat['filter']==f],yerr=1E14*dat['FluxDensityErr'][dat['filter']==f],label=f,color=next(cols),fmt='.')
                 ax.legend()
-                
+
         fig.text(0.04, 0.5,r'Flux Density [ 10$^{-14}$ erg cm$^{-2}$ s$^{-1}$ Hz$^{-1}$ ]',va='center',rotation='vertical')
         plt.xlabel('MJD')
         #plt.savefig("lightcurve.png")
-        plt.show() 
+        plt.show()
 
 def main():
 

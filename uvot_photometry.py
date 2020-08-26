@@ -14,7 +14,7 @@ class MeasureSource(object):
     '''Class to measure photometry on UVOT data using the ``UVOTSOURCE`` tool and to parse the results.
 
     Attributes:
-        filepath (str): path of fits image to input into ``UVOTSOURCE`` 
+        filepath (str): path of fits image to input into ``UVOTSOURCE``
         source_coords (`astropy.coordinates.SkyCoord`_): coordinates of the source
         dirpath (str): directory containing ``filepath``
         obs (str): observation ID parsed from ``filepath``
@@ -36,6 +36,7 @@ class MeasureSource(object):
             base,extn = filename.split('_')
             self.obs = base[2:-3]
             self.band = base[-2:]
+
         else:
             self.obs = filename[8:23]
             self.band = filename[5:7]
@@ -46,7 +47,7 @@ class MeasureSource(object):
 
 
         Note:
-            Central wavelengths for UVOT filters are taken from `Poole et al. (2008)`_.               
+            Central wavelengths for UVOT filters are taken from `Poole et al. (2008)`_.
             :math:`R_{\lambda}` values are derived using the `York Extinction Solver`_.
 
 
@@ -62,8 +63,8 @@ class MeasureSource(object):
             http://docs.astropy.org/en/stable/api/astropy.coordinates.SkyCoord.html#astropy.coordinates.SkyCoord
         .. _Poole et al. (2008):
             http://adsabs.harvard.edu/abs/2008MNRAS.383..627P
-        .. _York Extinction Solver: 
-            http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/community/YorkExtinctionSolver/coefficients.cgi        
+        .. _York Extinction Solver:
+            http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/community/YorkExtinctionSolver/coefficients.cgi
         '''
 
         central_wav = {'uu':3465.,'w1':2600.,'m2':2246.,'w2':1928.,'bb':4392.,'vv':5468.}
@@ -100,9 +101,9 @@ class MeasureSource(object):
         bkgregfile = path.join(self.dirpath,'back_%s_%s.reg' %(self.obs,self.band))
         uvotsourcefile = path.join(self.dirpath,'uvotsource_%s_%s.fits' %(self.obs,self.band))
 
-        tmp = subprocess.Popen(['uvotsource','image=%s' %self.filepath,'srcreg=%s' %srcregfile, 'bkgreg=%s' %bkgregfile, 
+        tmp = subprocess.Popen(['uvotsource','image=%s' %self.filepath,'srcreg=%s' %srcregfile, 'bkgreg=%s' %bkgregfile,
                                 'outfile=%s' %uvotsourcefile,'chatter=0','sigma=3','clobber=YES'], stdout=subprocess.PIPE)
-        
+
         return tmp.communicate()
 
     def get_observation_time(self):
@@ -123,12 +124,12 @@ class MeasureSource(object):
             else:
                 aspflag = False
         except KeyError:
-            print 'Assuming apsflag is fine for %s' %self.filepath
+            print ('Assuming apsflag is fine for %s' %self.filepath)
             aspflag = True
 
         mainfits.close()
 
-        return obs_start + (obs_end - obs_start)/2,aspflag 
+        return obs_start + (obs_end - obs_start)/2,aspflag
 
     def get_observation_data(self):
         '''Parse the output of ``UVOTSOURCE`` to extract essential photometry information.
@@ -141,14 +142,14 @@ class MeasureSource(object):
         try:
             data = fits.getdata(uvotsourcefile)
         except IOError:
-            print '''%s not found. Make sure to run uvotsource beforehand or this will get annoying.\n
-                   Will try running uvotsource now and will skip this observation if it fails.''' %uvotsourcefile
+            print ('''%s not found. Make sure to run uvotsource beforehand or this will get annoying.\n
+                   Will try running uvotsource now and will skip this observation if it fails.''' %uvotsourcefile)
             tmp = self.run_uvotsource()
             try:
                 data = fits.getdata(uvotsourcefile)
-                print 'Running uvotsource worked.'
+                print ('Running uvotsource worked.')
             except IOError:
-                print 'Failed again... Skipping %s' %self.filepath
+                print ('Failed again... Skipping %s' %self.filepath)
                 return None
 
 
@@ -162,5 +163,3 @@ class MeasureSource(object):
         fluxextcorr = self.correct_extinction(flux,self.band)
         fluxextcorrerr = self.correct_extinction(fluxerr,self.band)
         return [self.band,obstime.mjd,mag,magerr,flux,fluxerr,fluxj,fluxjerr,fluxextcorr,fluxextcorrerr]
-
-
