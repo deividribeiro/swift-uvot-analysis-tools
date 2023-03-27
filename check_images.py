@@ -176,7 +176,7 @@ class SourceImageViewer():
             with warnings.catch_warnings():
                 # Ignore a warning on using DATE-OBS in place of MJD-OBS
                 warnings.filterwarnings('ignore', message="'datfix' made the change", category=FITSFixedWarning)
-                warnings.filterwarnings('ignore', message="RADECSYS = 'FK5'", category=FITSFixedWarning)
+                warnings.filterwarnings('ignore', message="RADECSYS= 'FK5'", category=FITSFixedWarning)
                 self.wcs = WCS(self.hdu.header)
             self.fig = plt.figure(1)
             self.ax = WCSAxes(self.fig, [0.1, 0.1, 0.8, 0.8], wcs=self.wcs)

@@ -288,10 +288,9 @@ def main():
 
     # Get the user defined background region
     if args.background:
-        with open(args.background, "r") as f:
-            runner.bkg_region = Regions.read(f, format='ds9')
-            runner.bkg_radius = runner.bkg_region.radius.to(u.arcsec).value
-            runner.bkg_coords = runner.bkg_region.center
+        runner.bkg_region = Regions.read(args.background, format='ds9')
+        runner.bkg_radius = runner.bkg_region.radius.to(u.arcsec).value
+        runner.bkg_coords = runner.bkg_region.center
 
     # get user to identify background region (and source region if coordinates or source name are not supplied)
 
