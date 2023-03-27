@@ -288,7 +288,7 @@ def main():
 
     # Get the user defined background region
     if args.background:
-        runner.bkg_region = Regions.read(args.background, format='ds9')
+        runner.bkg_region = Regions.read(args.background, format='ds9') #take first item
         runner.bkg_radius = runner.bkg_region.radius.to(u.arcsec).value
         runner.bkg_coords = runner.bkg_region.center
 
