@@ -19,6 +19,7 @@ import argparse
 from tqdm import tqdm
 
 from astropy.coordinates import SkyCoord
+from regions import Regions
 from astropy import units as u
 from astropy.time import Time
 
@@ -39,6 +40,8 @@ class uvot_runner(object):
         self.filepaths = None
         self.source_coords = None
         self.bkg_coords = None
+        self.source_radius = None
+        self.bkg_radius = None
         self.ebminv = None
 
     def query_for_source_coords(self, source_name):
@@ -68,7 +71,7 @@ class uvot_runner(object):
             prime_source (bool): If true, in addition to prompting user to interactively select a center for background region, will also ask user to select location for a source.
         '''
 
-        import pyds9 as ds9
+        # import pyds9 as ds9
         from check_images import SourceImageViewer
 
         #launching a ds9 window
@@ -85,9 +88,12 @@ class uvot_runner(object):
             self.source_coords = iv.prime_source()
 
         iv.source_coords = self.source_coords
+        iv.source_radius = self.source_radius
+        iv.update_source_region()
 
         if self.bkg_coords is None:
             self.bkg_coords = iv.prime_bkg()
+            self.bkg_radius = iv.bkg_radius
 
 
     def uvot_detecter(self,default_fs = True):
@@ -123,12 +129,21 @@ class uvot_runner(object):
 
             iv = SourceImageViewer()
 
-            iv.source_coords = self.source_coords
-            iv.bkg_coords = self.bkg_coords
-
             iv.filepath = filepath
+
+            iv.source_coords = self.source_coords
+            iv.source_radius = self.source_radius
+            iv.bkg_coords = self.bkg_coords
+            iv.bkg_radius = self.bkg_radius
+
+            iv.update_source_region()
+            iv.update_bkg_region()
+
             iv.setup_frame()
-            x = input('Viewing %s. Hit Enter to continue.' %filepath)
+            iv.display_source_region()
+            iv.display_bkg_region()
+            iv.update()
+            # x = input('Viewing %s. Hit Enter to continue.' %filepath)
 
 
     def uvot_measurer(self,measure=True,default_fs = True):
@@ -251,10 +266,12 @@ def main():
     prime_source = False
     if args.c:
         #need to get the parsing right
-        runner.source_coords = SkyCoord(args.c)
+        runner.source_coords = SkyCoord(args.c,frame='fk5')
+        runner.source_radius = 5 #* u.arcsec
     elif args.s:
         #query NED for the source position using provided source name and set source_ra and source_dec
         runner.query_for_source_coords(args.s)
+        runner.source_radius = 5 #* u.arcsec
     else:
         prime_source = True
         print ('Source not specified by either -c or -s option. Will make user select the source location interactively.')
@@ -263,9 +280,10 @@ def main():
     # Get the user defined background region
     if args.background:
         with open(args.background, "r") as f:
-            line = f.readlines()
-            coords = line[0].split("(")[1].split(",")[:2]
-            runner.bkg_coords = SkyCoord(ra=float(coords[0])*u.deg, dec=float(coords[1]) * u.deg, frame="fk5")
+            runner.bkg_region = Regions.read(f, format='ds9')
+            runner.bkg_radius = runner.bkg_region.radius.to(u.arcsec).value
+            runner.bkg_coords = runner.bkg_region.center
+
 
     #get user to identify background region (and source region if coordinates or source name are not supplied)
 
